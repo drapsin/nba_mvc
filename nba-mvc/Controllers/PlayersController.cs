@@ -10,22 +10,22 @@ using nba_mvc.Models;
 
 namespace nba_mvc.Controllers
 {
-    public class TeamsController : Controller
+    public class PlayersController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public TeamsController(ApplicationDbContext context)
+        public PlayersController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Teams
+        // GET: Players
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Team.ToListAsync());
+            return View(await _context.Player.ToListAsync());
         }
 
-        // GET: Teams/Details/5
+        // GET: Players/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -33,41 +33,40 @@ namespace nba_mvc.Controllers
                 return NotFound();
             }
 
-            var team = await _context.Team
+            var player = await _context.Player
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (team == null)
+            if (player == null)
             {
                 return NotFound();
             }
 
-            return View(team);
+            return View(player);
         }
 
-        // GET: Teams/Create
+        // GET: Players/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Teams/Create
+        // POST: Players/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,City,Site,Sponsor,News,Ranking,Contact,Id")] Team team)
+        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,Id,CreatedAt")] Player player)
         {
-            
             if (ModelState.IsValid)
             {
-                team.Id = Guid.NewGuid();
-                _context.Add(team);
+                player.Id = Guid.NewGuid();
+                _context.Add(player);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(team);
+            return View(player);
         }
 
-        // GET: Teams/Edit/5
+        // GET: Players/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -75,22 +74,22 @@ namespace nba_mvc.Controllers
                 return NotFound();
             }
 
-            var team = await _context.Team.FindAsync(id);
-            if (team == null)
+            var player = await _context.Player.FindAsync(id);
+            if (player == null)
             {
                 return NotFound();
             }
-            return View(team);
+            return View(player);
         }
 
-        // POST: Teams/Edit/5
+        // POST: Players/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Name,City,Site,Sponsor,News,Ranking,Contact,Id,CreatedAt")] Team team)
+        public async Task<IActionResult> Edit(Guid id, [Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,Id,CreatedAt")] Player player)
         {
-            if (id != team.Id)
+            if (id != player.Id)
             {
                 return NotFound();
             }
@@ -99,12 +98,12 @@ namespace nba_mvc.Controllers
             {
                 try
                 {
-                    _context.Update(team);
+                    _context.Update(player);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TeamExists(team.Id))
+                    if (!PlayerExists(player.Id))
                     {
                         return NotFound();
                     }
@@ -115,10 +114,10 @@ namespace nba_mvc.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(team);
+            return View(player);
         }
 
-        // GET: Teams/Delete/5
+        // GET: Players/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -126,34 +125,34 @@ namespace nba_mvc.Controllers
                 return NotFound();
             }
 
-            var team = await _context.Team
+            var player = await _context.Player
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (team == null)
+            if (player == null)
             {
                 return NotFound();
             }
 
-            return View(team);
+            return View(player);
         }
 
-        // POST: Teams/Delete/5
+        // POST: Players/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var team = await _context.Team.FindAsync(id);
-            if (team != null)
+            var player = await _context.Player.FindAsync(id);
+            if (player != null)
             {
-                _context.Team.Remove(team);
+                _context.Player.Remove(player);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TeamExists(Guid id)
+        private bool PlayerExists(Guid id)
         {
-            return _context.Team.Any(e => e.Id == id);
+            return _context.Player.Any(e => e.Id == id);
         }
     }
 }

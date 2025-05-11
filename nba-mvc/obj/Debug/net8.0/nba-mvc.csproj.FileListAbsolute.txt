@@ -270,3 +270,4 @@ C:\Users\urosd\source\repos\nba-mvc\nba-mvc\bin\Debug\net8.0\runtimes\win\lib\ne
 C:\Users\urosd\source\repos\nba-mvc\nba-mvc\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\urosd\source\repos\nba-mvc\nba-mvc\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Windows.Extensions.dll
 C:\Users\urosd\source\repos\nba-mvc\nba-mvc\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\urosd\source\repos\nba-mvc\nba-mvc\obj\Debug\net8.0\nba-mvc.sourcelink.json
