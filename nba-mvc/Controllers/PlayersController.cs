@@ -46,6 +46,7 @@ namespace nba_mvc.Controllers
         // GET: Players/Create
         public IActionResult Create()
         {
+            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name");
             return View();
         }
 
@@ -54,7 +55,7 @@ namespace nba_mvc.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,Id,CreatedAt")] Player player)
+        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,TeamId,Id")] Player player)
         {
             if (ModelState.IsValid)
             {
@@ -63,6 +64,8 @@ namespace nba_mvc.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", player.TeamId);
             return View(player);
         }
 

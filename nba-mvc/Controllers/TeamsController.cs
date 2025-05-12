@@ -46,25 +46,35 @@ namespace nba_mvc.Controllers
         // GET: Teams/Create
         public IActionResult Create()
         {
+            ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName");
             return View();
         }
 
         // POST: Teams/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,City,Site,Sponsor,News,Ranking,Contact,Id")] Team team)
+        public async Task<IActionResult> Create([Bind("Name,City,Site,Sponsor,News,Ranking,Contact,ArenaId,Id")] Team team)
         {
-            
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                team.Id = Guid.NewGuid();
-                _context.Add(team);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                Console.WriteLine("ModelState is invalid");
+
+                foreach (var error in ModelState)
+                {
+                    foreach (var subError in error.Value.Errors)
+                    {
+                        Console.WriteLine($"Error in {error.Key}: {subError.ErrorMessage}");
+                    }
+                }
+
+                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", team.ArenaId);
+                return View(team);
             }
-            return View(team);
+
+            team.Id = Guid.NewGuid();
+            _context.Add(team);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Teams/Edit/5
@@ -84,11 +94,9 @@ namespace nba_mvc.Controllers
         }
 
         // POST: Teams/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Name,City,Site,Sponsor,News,Ranking,Contact,Id,CreatedAt")] Team team)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Name,City,Site,Sponsor,News,Ranking,Contact,ArenaId,Id,CreatedAt")] Team team)
         {
             if (id != team.Id)
             {
@@ -115,6 +123,7 @@ namespace nba_mvc.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", team.ArenaId);
             return View(team);
         }
 

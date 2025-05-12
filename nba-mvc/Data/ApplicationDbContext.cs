@@ -13,5 +13,8 @@ namespace nba_mvc.Data
         public DbSet<nba_mvc.Models.Team> Team { get; set; } = default!;
         public DbSet<nba_mvc.Models.Comentator> Comentator { get; set; } = default!;
         public DbSet<nba_mvc.Models.Player> Player { get; set; } = default!;
+        public DbSet<nba_mvc.Models.Arena> Arena { get; set; } = default!;
+        public DbSet<nba_mvc.Models.Coach> Coach { get; set; } = default!;
+        public DbSet<nba_mvc.Models.Referee> Referee { get; set; } = default!;
     }
 }

@@ -6,6 +6,7 @@
         public string LastName { get; set; }
         public int Age { get; set; }
         public string History { get; set; }
-        public Team Team { get; set; }
+        public Guid TeamId { get; set; }
+        public Team? Team { get; set; }
     }
 }
