@@ -6,6 +6,14 @@
 
 <h1>Details</h1>
 
+@if (!string.IsNullOrEmpty(Model.ImageUrl))
+{
+    <div class="mb-3">
+        <label><strong>Profile Image:</strong></label><br />
+        <img src="@Model.ImageUrl" alt="Player Image" width="200" style="border: 1px solid #ccc;" />
+    </div>
+}
+
 <div>
     <h4>Player</h4>
     <hr />

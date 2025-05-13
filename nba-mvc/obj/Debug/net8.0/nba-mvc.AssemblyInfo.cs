@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("nba-mvc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+717fa616407e9f1d82baafec273fb567ec9fc637")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30436d2673c9d2ec1cb03b20c7956109c630415f")]
 [assembly: System.Reflection.AssemblyProductAttribute("nba-mvc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("nba-mvc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

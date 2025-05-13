@@ -1,46 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using nba_mvc.Data;
 using nba_mvc.Models;
+using nba_mvc.Services;
+using nba_mvc.ViewModels;
 
 namespace nba_mvc.Controllers
 {
     public class PlayersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public PlayersController(ApplicationDbContext context)
+        public PlayersController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         // GET: Players
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Player.ToListAsync());
-        }
-
-        // GET: Players/Details/5
-        public async Task<IActionResult> Details(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var player = await _context.Player
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (player == null)
-            {
-                return NotFound();
-            }
-
-            return View(player);
+            var players = _context.Player.Include(p => p.Team);
+            return View(await players.ToListAsync());
         }
 
         // GET: Players/Create
@@ -51,89 +34,130 @@ namespace nba_mvc.Controllers
         }
 
         // POST: Players/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,TeamId,Id")] Player player)
+        public async Task<IActionResult> Create(PlayerCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                player.Id = Guid.NewGuid();
-                _context.Add(player);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
+                return View(model);
             }
 
-            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", player.TeamId);
+            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+
+            var player = new Player
+            {
+                Id = Guid.NewGuid(),
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Age = model.Age,
+                Position = model.Position,
+                Height = model.Height,
+                Weight = model.Weight,
+                Manager = model.Manager,
+                Sponsor = model.Sponsor,
+                News = model.News,
+                TeamId = model.TeamId,
+                ImageUrl = imageUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Add(player);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Players/Details/5
+        public async Task<IActionResult> Details(Guid? id)
+        {
+            if (id == null) return NotFound();
+
+            var player = await _context.Player
+                .Include(p => p.Team)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (player == null) return NotFound();
+
             return View(player);
         }
 
         // GET: Players/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var player = await _context.Player.FindAsync(id);
-            if (player == null)
+            if (player == null) return NotFound();
+
+            var model = new PlayerEditViewModel
             {
-                return NotFound();
-            }
-            return View(player);
+                Id = player.Id,
+                FirstName = player.FirstName,
+                LastName = player.LastName,
+                Age = player.Age,
+                Position = player.Position,
+                Height = player.Height,
+                Weight = player.Weight,
+                Manager = player.Manager,
+                Sponsor = player.Sponsor,
+                News = player.News,
+                TeamId = player.TeamId,
+                CurrentImageUrl = player.ImageUrl
+            };
+
+            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", player.TeamId);
+            return View(model);
         }
 
         // POST: Players/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("FirstName,LastName,Age,Position,Height,Weight,Manager,Sponsor,News,Id,CreatedAt")] Player player)
+        public async Task<IActionResult> Edit(Guid id, PlayerEditViewModel model)
         {
-            if (id != player.Id)
+            if (id != model.Id) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
+                return View(model);
             }
 
-            if (ModelState.IsValid)
+            var player = await _context.Player.FindAsync(id);
+            if (player == null) return NotFound();
+
+            if (model.ProfileImage != null)
             {
-                try
-                {
-                    _context.Update(player);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PlayerExists(player.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                player.ImageUrl = newImageUrl;
             }
-            return View(player);
+
+            player.FirstName = model.FirstName;
+            player.LastName = model.LastName;
+            player.Age = model.Age;
+            player.Position = model.Position;
+            player.Height = model.Height;
+            player.Weight = model.Weight;
+            player.Manager = model.Manager;
+            player.Sponsor = model.Sponsor;
+            player.News = model.News;
+            player.TeamId = model.TeamId;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Players/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var player = await _context.Player
+                .Include(p => p.Team)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (player == null)
-            {
-                return NotFound();
-            }
+
+            if (player == null) return NotFound();
 
             return View(player);
         }
@@ -147,9 +171,9 @@ namespace nba_mvc.Controllers
             if (player != null)
             {
                 _context.Player.Remove(player);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj": {}
+    "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj": {}
   },
   "projects": {
-    "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj": {
+    "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
+        "projectUniqueName": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
         "projectName": "nba-mvc",
-        "projectPath": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
+        "projectPath": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
         "packagesPath": "C:\\Users\\urosd\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\obj\\",
+        "outputPath": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -51,6 +51,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "CloudinaryDotNet": {
+              "target": "Package",
+              "version": "[1.27.5, )"
+            },
             "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.15, )"

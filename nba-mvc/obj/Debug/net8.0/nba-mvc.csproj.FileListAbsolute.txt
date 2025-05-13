@@ -543,3 +543,5 @@ C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\obj\Debug\net8.0\refint\nba-mvc.dll
 C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\obj\Debug\net8.0\nba-mvc.pdb
 C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\obj\Debug\net8.0\nba-mvc.genruntimeconfig.cache
 C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\obj\Debug\net8.0\ref\nba-mvc.dll
+C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\bin\Debug\net8.0\CloudinaryDotNet.dll
+C:\Users\urosd\Source\Repos\nba_mvc\nba-mvc\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
