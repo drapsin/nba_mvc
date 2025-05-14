@@ -7,6 +7,6 @@
         public string Age { get; set; }
         public string Experience { get; set; }
         public string Licence { get; set; }
-
+        public string? ImageUrl { get; set; }
     }
 }

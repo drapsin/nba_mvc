@@ -7,16 +7,20 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using nba_mvc.Data;
 using nba_mvc.Models;
+using nba_mvc.Services;
+using nba_mvc.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace nba_mvc.Controllers
 {
     public class CoachesController : Controller
     {
         private readonly ApplicationDbContext _context;
-
-        public CoachesController(ApplicationDbContext context)
+        private readonly ICloudinaryService _cloudinaryService;
+        public CoachesController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         // GET: Coaches
@@ -55,72 +59,84 @@ namespace nba_mvc.Controllers
         // POST: Coaches/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,History,TeamId,Id,CreatedAt")] Coach coach)
+        public async Task<IActionResult> Create(CoachCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                coach.Id = Guid.NewGuid();
-                _context.Add(coach);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
+                return View(model);
             }
+            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
 
-            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", coach.TeamId);
-            return View(coach);
+            var coach = new Coach
+            {
+                Id = Guid.NewGuid(),
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Age = model.Age,
+                History = model.History,
+                TeamId = model.TeamId,
+                ImageUrl = imageUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Add(coach);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Coaches/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var coach = await _context.Coach.FindAsync(id);
-            if (coach == null)
-            {
-                return NotFound();
-            }
+            if (coach == null) return NotFound();
 
+            var model = new CoachEditViewModel
+            {
+                Id = coach.Id,
+                FirstName = coach.FirstName,
+                LastName = coach.LastName,
+                Age = coach.Age,
+                History = coach.History,
+                TeamId = coach.TeamId,
+                CurrentImageUrl = coach.ImageUrl
+            };
             ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", coach.TeamId);
-            return View(coach);
+            return View(model);
         }
+
 
         // POST: Coaches/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("FirstName,LastName,Age,History,TeamId,Id,CreatedAt")] Coach coach)
+        public async Task<IActionResult> Edit(Guid id, CoachEditViewModel model)
         {
-            if (id != coach.Id)
-            {
-                return NotFound();
-            }
+            if (id != model.Id) return NotFound();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(coach);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CoachExists(coach.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
+                return View(model);
             }
+            var coach = await _context.Coach.FindAsync(id);
+            if (coach == null) return NotFound();
 
-            ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", coach.TeamId);
-            return View(coach);
+            if (model.ProfileImage != null)
+            {
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                coach.ImageUrl = newImageUrl;
+            }
+            coach.FirstName = model.FirstName;
+            coach.LastName = model.LastName;
+            coach.Age = model.Age;
+            coach.History = model.History;
+            coach.TeamId = model.TeamId;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Coaches/Delete/5
         public async Task<IActionResult> Delete(Guid? id)

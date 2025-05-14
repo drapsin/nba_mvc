@@ -1,54 +1,33 @@
 ﻿@model nba_mvc.Models.Coach
 
-@{
-    ViewData["Title"] = "Details";
-}
+<h1>Coach Details</h1>
+<hr />
 
-<h1>Details</h1>
+<div class="mb-3">
+    <label><strong>Profile Image:</strong></label><br />
+    <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/image/fallback-image.png" : Model.ImageUrl)"
+         alt="Coach Image" width="200" style="border:1px solid #ccc;" />
+</div>
 
-<div>
-    <h4>Coach</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FirstName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FirstName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Age)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Age)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.History)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.History)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Team)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Team.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl class="row">
+    <dt class="col-sm-2">First Name</dt>
+    <dd class="col-sm-10">@Model.FirstName</dd>
+
+    <dt class="col-sm-2">Last Name</dt>
+    <dd class="col-sm-10">@Model.LastName</dd>
+
+    <dt class="col-sm-2">Age</dt>
+    <dd class="col-sm-10">@Model.Age</dd>
+
+    <dt class="col-sm-2">History</dt>
+    <dd class="col-sm-10">@Model.History</dd>
+
+    <dt class="col-sm-2">Team</dt>
+    <dd class="col-sm-10">@Model.Team?.Name</dd>
+
+    <dt class="col-sm-2">Created At</dt>
+    <dd class="col-sm-10">@Model.CreatedAt</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+<a asp-action="Index">Back to List</a>

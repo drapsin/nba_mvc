@@ -1,22 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using nba_mvc.Data;
 using nba_mvc.Models;
+using nba_mvc.ViewModels;
+using nba_mvc.Services;
 
 namespace nba_mvc.Controllers
 {
     public class RefereesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public RefereesController(ApplicationDbContext context)
+        public RefereesController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
 
         // GET: Referees
@@ -28,17 +30,10 @@ namespace nba_mvc.Controllers
         // GET: Referees/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var referee = await _context.Referee
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (referee == null)
-            {
-                return NotFound();
-            }
+            var referee = await _context.Referee.FirstOrDefaultAsync(m => m.Id == id);
+            if (referee == null) return NotFound();
 
             return View(referee);
         }
@@ -50,87 +45,87 @@ namespace nba_mvc.Controllers
         }
 
         // POST: Referees/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Age,Experience,Licence,Id,CreatedAt")] Referee referee)
+        public async Task<IActionResult> Create(RefereeCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+
+            var referee = new Referee
             {
-                referee.Id = Guid.NewGuid();
-                _context.Add(referee);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(referee);
+                Id = Guid.NewGuid(),
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Age = model.Age,
+                Experience = model.Experience,
+                Licence = model.Licence,
+                ImageUrl = imageUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Add(referee);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Referees/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var referee = await _context.Referee.FindAsync(id);
-            if (referee == null)
+            if (referee == null) return NotFound();
+
+            var model = new RefereeEditViewModel
             {
-                return NotFound();
-            }
-            return View(referee);
+                Id = referee.Id,
+                FirstName = referee.FirstName,
+                LastName = referee.LastName,
+                Age = referee.Age,
+                Experience = referee.Experience,
+                Licence = referee.Licence,
+                CurrentImageUrl = referee.ImageUrl
+            };
+
+            return View(model);
         }
 
         // POST: Referees/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("FirstName,LastName,Age,Experience,Licence,Id,CreatedAt")] Referee referee)
+        public async Task<IActionResult> Edit(Guid id, RefereeEditViewModel model)
         {
-            if (id != referee.Id)
+            if (id != model.Id) return NotFound();
+            if (!ModelState.IsValid) return View(model);
+
+            var referee = await _context.Referee.FindAsync(id);
+            if (referee == null) return NotFound();
+
+            if (model.ProfileImage != null)
             {
-                return NotFound();
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                referee.ImageUrl = newImageUrl;
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(referee);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!RefereeExists(referee.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(referee);
+            referee.FirstName = model.FirstName;
+            referee.LastName = model.LastName;
+            referee.Age = model.Age;
+            referee.Experience = model.Experience;
+            referee.Licence = model.Licence;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Referees/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var referee = await _context.Referee
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (referee == null)
-            {
-                return NotFound();
-            }
+            var referee = await _context.Referee.FirstOrDefaultAsync(m => m.Id == id);
+            if (referee == null) return NotFound();
 
             return View(referee);
         }
@@ -141,15 +136,11 @@ namespace nba_mvc.Controllers
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var referee = await _context.Referee.FindAsync(id);
-            if (referee != null)
-            {
-                _context.Referee.Remove(referee);
-            }
+            if (referee != null) _context.Referee.Remove(referee);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
         private bool RefereeExists(Guid id)
         {
             return _context.Referee.Any(e => e.Id == id);

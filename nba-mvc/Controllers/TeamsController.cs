@@ -7,17 +7,22 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using nba_mvc.Data;
 using nba_mvc.Models;
+using nba_mvc.Services;
+using nba_mvc.ViewModels;
 
 namespace nba_mvc.Controllers
 {
     public class TeamsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public TeamsController(ApplicationDbContext context)
+        public TeamsController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
         {
             _context = context;
+            _cloudinaryService = cloudinaryService;
         }
+
 
         // GET: Teams
         public async Task<IActionResult> Index()
@@ -50,29 +55,36 @@ namespace nba_mvc.Controllers
             return View();
         }
 
+
         // POST: Teams/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,City,Site,Sponsor,News,Ranking,Contact,ArenaId,Id")] Team team)
+        public async Task<IActionResult> Create(TeamCreateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                Console.WriteLine("ModelState is invalid");
-
-                foreach (var error in ModelState)
-                {
-                    foreach (var subError in error.Value.Errors)
-                    {
-                        Console.WriteLine($"Error in {error.Key}: {subError.ErrorMessage}");
-                    }
-                }
-
-                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", team.ArenaId);
-                return View(team);
+                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.ArenaId);
+                return View(model);
             }
 
-            team.Id = Guid.NewGuid();
-            _context.Add(team);
+            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+
+            var team = new Team
+            {
+                Id = Guid.NewGuid(),
+                Name = model.Name,
+                City = model.City,
+                Site = model.Site,
+                Sponsor = model.Sponsor,
+                News = model.News,
+                Ranking = model.Ranking,
+                Contact = model.Contact,
+                ArenaId = model.ArenaId,
+                ImageUrl = imageUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Team.Add(team);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -80,51 +92,59 @@ namespace nba_mvc.Controllers
         // GET: Teams/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var team = await _context.Team.FindAsync(id);
-            if (team == null)
+            if (team == null) return NotFound();
+
+            var model = new TeamEditViewModel
             {
-                return NotFound();
-            }
-            return View(team);
+                Id = team.Id,
+                Name = team.Name,
+                City = team.City,
+                Site = team.Site,
+                Sponsor = team.Sponsor,
+                News = team.News,
+                Ranking = team.Ranking,
+                Contact = team.Contact,
+                ArenaId = team.ArenaId,
+                CurrentImageUrl = team.ImageUrl
+            };
+
+            ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", team.ArenaId);
+            return View(model);
         }
 
         // POST: Teams/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Name,City,Site,Sponsor,News,Ranking,Contact,ArenaId,Id,CreatedAt")] Team team)
+        public async Task<IActionResult> Edit(Guid id, TeamEditViewModel model)
         {
-            if (id != team.Id)
-            {
-                return NotFound();
-            }
+            if (id != model.Id) return NotFound();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(team);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TeamExists(team.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.ArenaId);
+                return View(model);
             }
-            ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", team.ArenaId);
-            return View(team);
+            var team = await _context.Team.FindAsync(id);
+            if (team == null) return NotFound();
+            if (model.ProfileImage != null)
+            {
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                team.ImageUrl = newImageUrl;
+            }
+            team.Name = model.Name;
+            team.City = model.City;
+            team.Site = model.Site;
+            team.Sponsor = model.Sponsor;
+            team.News = model.News;
+            team.Ranking = model.Ranking;
+            team.Contact = model.Contact;
+            team.ArenaId = model.ArenaId;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Teams/Delete/5

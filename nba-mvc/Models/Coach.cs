@@ -8,5 +8,6 @@
         public string History { get; set; }
         public Guid TeamId { get; set; }
         public Team? Team { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }
