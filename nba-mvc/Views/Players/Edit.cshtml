@@ -76,7 +76,9 @@
 
             <div class="form-group">
                 <label>Current Image:</label><br />
-                <img src="@Model.CurrentImageUrl" alt="Player Image" width="100" style="border:1px solid #ccc;" />
+                <img src="@(string.IsNullOrEmpty(Model.CurrentImageUrl) ? "/image/fallback-image.png" : Model.CurrentImageUrl)"
+                     alt="Player Image" width="100" style="border:1px solid #ccc;" />
+
             </div>
 
             <div class="form-group">

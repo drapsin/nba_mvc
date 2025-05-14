@@ -13,6 +13,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\wwwroot\\image\\fallback-image.png",
+      "PackagePath": "staticwebassets\\image\\fallback-image.png"
+    },
+    {
       "Id": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
