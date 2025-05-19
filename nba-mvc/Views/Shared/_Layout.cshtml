@@ -26,6 +26,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+
                     <ul class="navbar-nav">
                         @if (User.Identity.IsAuthenticated)
                         {
@@ -37,6 +38,13 @@
                                     <button type="submit" class="btn btn-link nav-link text-dark" style="padding: 0;">Logout</button>
                                 </form>
                             </li>
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="AdminDashboard" asp-action="Index">Admin Panel</a>
+                                </li>
+                            }
                         }
                         else
                         {
@@ -48,7 +56,6 @@
                             </li>
                         }
                     </ul>
-
                 </div>
             </div>
         </nav>
