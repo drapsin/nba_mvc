@@ -18,15 +18,16 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>
-                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl)"
-                         alt="Referee" width="60" height="60" style="object-fit: cover;" />
-                </td>
                 <td>@item.FirstName</td>
                 <td>@item.LastName</td>
                 <td>@item.Age</td>
                 <td>@item.Experience</td>
                 <td>@item.Licence</td>
+                <td>
+                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl)"
+                         alt="Referee" width="60" height="60" style="object-fit: cover;" />
+                </td>
+
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
