@@ -97,11 +97,26 @@ namespace nba_mvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, RefereeEditViewModel model)
         {
-            if (id != model.Id) return NotFound();
-            if (!ModelState.IsValid) return View(model);
+            if (id != model.Id)
+                return NotFound();
 
-            var referee = await _context.Referee.FindAsync(id);
-            if (referee == null) return NotFound();
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var referee = await _context.Referee
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (referee == null)
+                return NotFound();
+
+            // Map form values
+            referee.FirstName = model.FirstName;
+            referee.LastName = model.LastName;
+            referee.Age = model.Age;
+            referee.Experience = model.Experience;
+            referee.Licence = model.Licence;
+            referee.RowVersion = model.RowVersion;
 
             if (model.ProfileImage != null)
             {
@@ -109,14 +124,28 @@ namespace nba_mvc.Controllers
                 referee.ImageUrl = newImageUrl;
             }
 
-            referee.FirstName = model.FirstName;
-            referee.LastName = model.LastName;
-            referee.Age = model.Age;
-            referee.Experience = model.Experience;
-            referee.Licence = model.Licence;
+            try
+            {
+                _context.Referee.Update(referee);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                var dbEntry = await _context.Referee
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.Id == id);
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                if (dbEntry == null)
+                    return NotFound();
+
+                ModelState.AddModelError("", "Another admin has modified this record. Your changes were not saved. Please review the updated information.");
+
+                model.RowVersion = dbEntry.RowVersion;
+                model.CurrentImageUrl = dbEntry.ImageUrl;
+
+                return View(model);
+            }
         }
 
         // GET: Referees/Delete/5

@@ -124,15 +124,13 @@ namespace nba_mvc.Controllers
                 return View(model);
             }
 
-            var player = await _context.Player.FindAsync(id);
+            var player = await _context.Player
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (player == null) return NotFound();
 
-            if (model.ProfileImage != null)
-            {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
-                player.ImageUrl = newImageUrl;
-            }
-
+            // Apply changes
             player.FirstName = model.FirstName;
             player.LastName = model.LastName;
             player.Age = model.Age;
@@ -143,9 +141,38 @@ namespace nba_mvc.Controllers
             player.Sponsor = model.Sponsor;
             player.News = model.News;
             player.TeamId = model.TeamId;
+            player.RowVersion = model.RowVersion;
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (model.ProfileImage != null)
+            {
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                player.ImageUrl = newImageUrl;
+            }
+
+            try
+            {
+                _context.Player.Update(player);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                var dbEntry = await _context.Player
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == id);
+
+                if (dbEntry == null)
+                    return NotFound();
+
+                ModelState.AddModelError("", "Another admin has modified this record. Your changes were not saved. Please review the current data.");
+
+                // Re-populate Team dropdown and reset current image
+                ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
+                model.CurrentImageUrl = dbEntry.ImageUrl;
+                model.RowVersion = dbEntry.RowVersion;
+
+                return View(model);
+            }
         }
 
         // GET: Players/Delete/5

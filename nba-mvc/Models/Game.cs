@@ -1,4 +1,6 @@
-﻿namespace nba_mvc.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace nba_mvc.Models
 {
     public class Game : BaseId
     {
@@ -10,6 +12,9 @@
         public string Sponsor { get; set; }
         public ICollection<ActionEvent> ActionEvents { get; set; } = new List<ActionEvent>();
         public ICollection<Player> Players { get; set; }
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
 
     }
 }

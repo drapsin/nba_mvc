@@ -1,4 +1,6 @@
-﻿namespace nba_mvc.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace nba_mvc.Models
 {
     public class Comentator : BaseId
     {
@@ -9,5 +11,8 @@
         public string Ranking { get; set; }
         public string Site { get; set; }
         public string City { get; set; }
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
     }
 }

@@ -87,34 +87,36 @@ namespace nba_mvc.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ArenaName,ArenaLocation,Capacity,Id,CreatedAt")] Arena arena)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ArenaName,ArenaLocation,Capacity,Id,CreatedAt,RowVersion")] Arena arena)
         {
             if (id != arena.Id)
-            {
                 return NotFound();
-            }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(arena);
+
+            try
             {
-                try
-                {
-                    _context.Update(arena);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ArenaExists(arena.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                _context.Update(arena);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(arena);
+            catch (DbUpdateConcurrencyException)
+            {
+                var dbArena = await _context.Arena
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (dbArena == null)
+                    return NotFound();
+
+                ModelState.AddModelError("", "Another admin has modified this Arena while you were editing. Please review the current values and try again.");
+
+                // Update RowVersion with the latest one from the DB so the user can retry
+                arena.RowVersion = dbArena.RowVersion;
+
+                return View(arena);
+            }
         }
 
         // GET: Arenas/Delete/5

@@ -120,20 +120,23 @@ namespace nba_mvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, TeamEditViewModel model)
         {
-            if (id != model.Id) return NotFound();
+            if (id != model.Id)
+                return NotFound();
 
             if (!ModelState.IsValid)
             {
                 ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.ArenaId);
                 return View(model);
             }
-            var team = await _context.Team.FindAsync(id);
-            if (team == null) return NotFound();
-            if (model.ProfileImage != null)
-            {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
-                team.ImageUrl = newImageUrl;
-            }
+
+            var team = await _context.Team
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (team == null)
+                return NotFound();
+
+            // Map updated values from model
             team.Name = model.Name;
             team.City = model.City;
             team.Site = model.Site;
@@ -142,10 +145,40 @@ namespace nba_mvc.Controllers
             team.Ranking = model.Ranking;
             team.Contact = model.Contact;
             team.ArenaId = model.ArenaId;
+            team.RowVersion = model.RowVersion;
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (model.ProfileImage != null)
+            {
+                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                team.ImageUrl = newImageUrl;
+            }
+
+            try
+            {
+                _context.Team.Update(team);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                var dbEntry = await _context.Team
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
+                if (dbEntry == null)
+                    return NotFound();
+
+                ModelState.AddModelError("", "Another admin has modified this Team. Your changes were not saved. Please review the updated data.");
+
+                // Refresh the model with latest info
+                model.RowVersion = dbEntry.RowVersion;
+                model.CurrentImageUrl = dbEntry.ImageUrl;
+
+                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.ArenaId);
+                return View(model);
+            }
         }
+
 
         // GET: Teams/Delete/5
         public async Task<IActionResult> Delete(Guid? id)

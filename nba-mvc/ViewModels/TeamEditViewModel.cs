@@ -13,5 +13,7 @@
         public Guid ArenaId { get; set; }
         public IFormFile? ProfileImage { get; set; }
         public string? CurrentImageUrl { get; set; }
+        public byte[] RowVersion { get; set; }
+
     }
 }

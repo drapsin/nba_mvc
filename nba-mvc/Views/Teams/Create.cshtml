@@ -51,7 +51,7 @@
 
             <!-- Arena Dropdown -->
             <div class="form-group">
-                <label asp-for="ArenaId" class="control-label"></label>
+                <label asp-for="ArenaId" class="control-label">Arena</label>
                 <select asp-for="ArenaId" class="form-control" asp-items="@(ViewBag.ArenaId as SelectList)"></select>
                 <span asp-validation-for="ArenaId" class="text-danger"></span>
             </div>
