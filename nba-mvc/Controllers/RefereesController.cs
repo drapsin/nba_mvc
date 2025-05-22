@@ -13,12 +13,12 @@ namespace nba_mvc.Controllers
     public class RefereesController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICloudinaryService _cloudinaryService;
+        private readonly ImageService _imageService;
 
-        public RefereesController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
+        public RefereesController(ApplicationDbContext context, ImageService imageService)
         {
             _context = context;
-            _cloudinaryService = cloudinaryService;
+            _imageService = imageService;
         }
 
         // GET: Referees
@@ -51,7 +51,7 @@ namespace nba_mvc.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+            string? imageUrl = await _imageService.UploadAsync(model.ProfileImage);
 
             var referee = new Referee
             {
@@ -97,20 +97,16 @@ namespace nba_mvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, RefereeEditViewModel model)
         {
-            if (id != model.Id)
-                return NotFound();
+            if (id != model.Id) return NotFound();
 
-            if (!ModelState.IsValid)
-                return View(model);
+            if (!ModelState.IsValid) return View(model);
 
             var referee = await _context.Referee
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (referee == null)
-                return NotFound();
+            if (referee == null) return NotFound();
 
-            // Map form values
             referee.FirstName = model.FirstName;
             referee.LastName = model.LastName;
             referee.Age = model.Age;
@@ -120,7 +116,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                string? newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
                 referee.ImageUrl = newImageUrl;
             }
 
@@ -170,6 +166,7 @@ namespace nba_mvc.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
         private bool RefereeExists(Guid id)
         {
             return _context.Referee.Any(e => e.Id == id);

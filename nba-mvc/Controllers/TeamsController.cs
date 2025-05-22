@@ -15,14 +15,13 @@ namespace nba_mvc.Controllers
     public class TeamsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICloudinaryService _cloudinaryService;
+        private readonly ImageService _imageService;
 
-        public TeamsController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
+        public TeamsController(ApplicationDbContext context, ImageService imageService)
         {
             _context = context;
-            _cloudinaryService = cloudinaryService;
+            _imageService = imageService;
         }
-
 
         // GET: Teams
         public async Task<IActionResult> Index()
@@ -34,16 +33,11 @@ namespace nba_mvc.Controllers
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var team = await _context.Team
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var team = await _context.Team.FirstOrDefaultAsync(m => m.Id == id);
             if (team == null)
-            {
                 return NotFound();
-            }
 
             return View(team);
         }
@@ -54,7 +48,6 @@ namespace nba_mvc.Controllers
             ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName");
             return View();
         }
-
 
         // POST: Teams/Create
         [HttpPost]
@@ -67,7 +60,7 @@ namespace nba_mvc.Controllers
                 return View(model);
             }
 
-            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+            string? imageUrl = await _imageService.UploadAsync(model.ProfileImage);
 
             var team = new Team
             {
@@ -92,10 +85,12 @@ namespace nba_mvc.Controllers
         // GET: Teams/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+                return NotFound();
 
             var team = await _context.Team.FindAsync(id);
-            if (team == null) return NotFound();
+            if (team == null)
+                return NotFound();
 
             var model = new TeamEditViewModel
             {
@@ -136,7 +131,6 @@ namespace nba_mvc.Controllers
             if (team == null)
                 return NotFound();
 
-            // Map updated values from model
             team.Name = model.Name;
             team.City = model.City;
             team.Site = model.Site;
@@ -149,7 +143,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                string? newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
                 team.ImageUrl = newImageUrl;
             }
 
@@ -170,7 +164,6 @@ namespace nba_mvc.Controllers
 
                 ModelState.AddModelError("", "Another admin has modified this Team. Your changes were not saved. Please review the updated data.");
 
-                // Refresh the model with latest info
                 model.RowVersion = dbEntry.RowVersion;
                 model.CurrentImageUrl = dbEntry.ImageUrl;
 
@@ -179,21 +172,15 @@ namespace nba_mvc.Controllers
             }
         }
 
-
         // GET: Teams/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var team = await _context.Team
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var team = await _context.Team.FirstOrDefaultAsync(m => m.Id == id);
             if (team == null)
-            {
                 return NotFound();
-            }
 
             return View(team);
         }
@@ -205,9 +192,7 @@ namespace nba_mvc.Controllers
         {
             var team = await _context.Team.FindAsync(id);
             if (team != null)
-            {
                 _context.Team.Remove(team);
-            }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

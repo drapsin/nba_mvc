@@ -11,12 +11,12 @@ namespace nba_mvc.Controllers
     public class PlayersController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICloudinaryService _cloudinaryService;
+        private readonly ImageService _imageService;
 
-        public PlayersController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
+        public PlayersController(ApplicationDbContext context, ImageService imageService)
         {
             _context = context;
-            _cloudinaryService = cloudinaryService;
+            _imageService = imageService;
         }
 
         // GET: Players
@@ -44,7 +44,7 @@ namespace nba_mvc.Controllers
                 return View(model);
             }
 
-            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+            var imageUrl = await _imageService.UploadAsync(model.ProfileImage);
 
             var player = new Player
             {
@@ -130,7 +130,6 @@ namespace nba_mvc.Controllers
 
             if (player == null) return NotFound();
 
-            // Apply changes
             player.FirstName = model.FirstName;
             player.LastName = model.LastName;
             player.Age = model.Age;
@@ -145,7 +144,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                var newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
                 player.ImageUrl = newImageUrl;
             }
 
@@ -166,7 +165,6 @@ namespace nba_mvc.Controllers
 
                 ModelState.AddModelError("", "Another admin has modified this record. Your changes were not saved. Please review the current data.");
 
-                // Re-populate Team dropdown and reset current image
                 ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
                 model.CurrentImageUrl = dbEntry.ImageUrl;
                 model.RowVersion = dbEntry.RowVersion;

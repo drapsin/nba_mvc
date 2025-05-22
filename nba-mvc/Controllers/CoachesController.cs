@@ -9,42 +9,38 @@ using nba_mvc.Data;
 using nba_mvc.Models;
 using nba_mvc.Services;
 using nba_mvc.ViewModels;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace nba_mvc.Controllers
 {
     public class CoachesController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICloudinaryService _cloudinaryService;
-        public CoachesController(ApplicationDbContext context, ICloudinaryService cloudinaryService)
+        private readonly ImageService _imageService;
+
+        public CoachesController(ApplicationDbContext context, ImageService imageService)
         {
             _context = context;
-            _cloudinaryService = cloudinaryService;
+            _imageService = imageService;
         }
 
         // GET: Coaches
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Coach.Include(c => c.Team);
-            return View(await applicationDbContext.ToListAsync());
+            var coaches = _context.Coach.Include(c => c.Team);
+            return View(await coaches.ToListAsync());
         }
 
         // GET: Coaches/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var coach = await _context.Coach
                 .Include(c => c.Team)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (coach == null)
-            {
                 return NotFound();
-            }
 
             return View(coach);
         }
@@ -66,7 +62,8 @@ namespace nba_mvc.Controllers
                 ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", model.TeamId);
                 return View(model);
             }
-            string imageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+
+            string? imageUrl = await _imageService.UploadAsync(model.ProfileImage);
 
             var coach = new Coach
             {
@@ -79,19 +76,21 @@ namespace nba_mvc.Controllers
                 ImageUrl = imageUrl,
                 CreatedAt = DateTime.UtcNow
             };
+
             _context.Add(coach);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-
         // GET: Coaches/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+                return NotFound();
 
             var coach = await _context.Coach.FindAsync(id);
-            if (coach == null) return NotFound();
+            if (coach == null)
+                return NotFound();
 
             var model = new CoachEditViewModel
             {
@@ -103,10 +102,10 @@ namespace nba_mvc.Controllers
                 TeamId = coach.TeamId,
                 CurrentImageUrl = coach.ImageUrl
             };
+
             ViewData["TeamId"] = new SelectList(_context.Team, "Id", "Name", coach.TeamId);
             return View(model);
         }
-
 
         // POST: Coaches/Edit/5
         [HttpPost]
@@ -129,7 +128,6 @@ namespace nba_mvc.Controllers
             if (coach == null)
                 return NotFound();
 
-            // Apply changes
             coach.FirstName = model.FirstName;
             coach.LastName = model.LastName;
             coach.Age = model.Age;
@@ -139,7 +137,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string newImageUrl = await _cloudinaryService.UploadImageAsync(model.ProfileImage);
+                string? newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
                 coach.ImageUrl = newImageUrl;
             }
 
@@ -168,22 +166,17 @@ namespace nba_mvc.Controllers
             }
         }
 
-
         // GET: Coaches/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var coach = await _context.Coach
                 .Include(c => c.Team)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (coach == null)
-            {
                 return NotFound();
-            }
 
             return View(coach);
         }
@@ -195,9 +188,7 @@ namespace nba_mvc.Controllers
         {
             var coach = await _context.Coach.FindAsync(id);
             if (coach != null)
-            {
                 _context.Coach.Remove(coach);
-            }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
