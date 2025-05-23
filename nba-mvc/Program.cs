@@ -21,25 +21,32 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 builder.Services.AddControllersWithViews();
 
 
-builder.Services.AddTransient<LocalImageUploader>();
-builder.Services.AddTransient<CloudinaryImageUploader>();
-builder.Services.AddSingleton<ImageUploaderResolver>();
-builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
-builder.Services.AddScoped<ImageService>();
+var imageStorage = builder.Configuration["ImageStorage"];
 
-
-// Cloudinary .NET SDK registration
-builder.Services.AddSingleton(provider =>
+if (imageStorage == "Cloudinary")
 {
-    var config = provider.GetRequiredService<IConfiguration>();
-    var account = new Account(
-        config["Cloudinary:CloudName"],
-        config["Cloudinary:ApiKey"],
-        config["Cloudinary:ApiSecret"]
-    );
+    builder.Services.AddSingleton<IImageUploader, CloudinaryImageUploader>();
+    builder.Services.AddSingleton<ICloudinaryService, CloudinaryService>();
+    builder.Services.AddSingleton(provider =>
+    {
+        var config = provider.GetRequiredService<IConfiguration>();
+        var account = new Account(
+            config["Cloudinary:CloudName"],
+            config["Cloudinary:ApiKey"],
+            config["Cloudinary:ApiSecret"]
+        );
+        return new Cloudinary(account);
+    });
+}
+else if (imageStorage == "Local")
+{
+    builder.Services.AddSingleton<IImageUploader, LocalImageUploader>();
+}
+else
+{
+    throw new InvalidOperationException("Invalid value for 'ImageStorage' in appsettings.json. Use 'Cloudinary' or 'Local'.");
+}
 
-    return new Cloudinary(account);
-});
 
 var app = builder.Build();
 

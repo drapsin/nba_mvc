@@ -15,12 +15,13 @@ namespace nba_mvc.Controllers
     public class TeamsController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ImageService _imageService;
+        private readonly IImageUploader _imageUploader;
 
-        public TeamsController(ApplicationDbContext context, ImageService imageService)
+
+        public TeamsController(ApplicationDbContext context, IImageUploader imageUploader)
         {
             _context = context;
-            _imageService = imageService;
+            _imageUploader = imageUploader;
         }
 
         // GET: Teams
@@ -60,7 +61,7 @@ namespace nba_mvc.Controllers
                 return View(model);
             }
 
-            string? imageUrl = await _imageService.UploadAsync(model.ProfileImage);
+            string? imageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
 
             var team = new Team
             {
@@ -143,7 +144,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string? newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
+                string? newImageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
                 team.ImageUrl = newImageUrl;
             }
 

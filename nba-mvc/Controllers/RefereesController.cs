@@ -13,12 +13,12 @@ namespace nba_mvc.Controllers
     public class RefereesController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ImageService _imageService;
+        private readonly IImageUploader _imageUploader;
 
-        public RefereesController(ApplicationDbContext context, ImageService imageService)
+        public RefereesController(ApplicationDbContext context, IImageUploader imageUploader)
         {
             _context = context;
-            _imageService = imageService;
+            _imageUploader = imageUploader; 
         }
 
         // GET: Referees
@@ -51,7 +51,7 @@ namespace nba_mvc.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            string? imageUrl = await _imageService.UploadAsync(model.ProfileImage);
+            string? imageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
 
             var referee = new Referee
             {
@@ -116,7 +116,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                string? newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
+                string? newImageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
                 referee.ImageUrl = newImageUrl;
             }
 

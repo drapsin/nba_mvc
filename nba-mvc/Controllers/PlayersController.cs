@@ -11,12 +11,12 @@ namespace nba_mvc.Controllers
     public class PlayersController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ImageService _imageService;
+        private readonly IImageUploader _imageUploader;
 
-        public PlayersController(ApplicationDbContext context, ImageService imageService)
+        public PlayersController(ApplicationDbContext context, IImageUploader imageUploader)
         {
             _context = context;
-            _imageService = imageService;
+            _imageUploader = imageUploader; 
         }
 
         // GET: Players
@@ -44,7 +44,7 @@ namespace nba_mvc.Controllers
                 return View(model);
             }
 
-            var imageUrl = await _imageService.UploadAsync(model.ProfileImage);
+            var imageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
 
             var player = new Player
             {
@@ -144,7 +144,7 @@ namespace nba_mvc.Controllers
 
             if (model.ProfileImage != null)
             {
-                var newImageUrl = await _imageService.UploadAsync(model.ProfileImage);
+                var newImageUrl = await _imageUploader.UploadImageAsync(model.ProfileImage);
                 player.ImageUrl = newImageUrl;
             }
 
