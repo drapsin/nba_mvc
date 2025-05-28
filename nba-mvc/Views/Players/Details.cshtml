@@ -62,6 +62,22 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Manager)
         </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Team)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.Team != null)
+            {
+                <a asp-controller="Teams" asp-action="Details" asp-route-id="@Model.Team.Id">
+                    @Model.Team.Name
+                </a>
+            }
+            else
+            {
+                <span>No team assigned</span>
+            }
+        </dd>
+
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Sponsor)
         </dt>

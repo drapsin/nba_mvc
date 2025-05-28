@@ -33,12 +33,13 @@ namespace nba_mvc.Controllers
         // GET: Teams/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-                return NotFound();
+            if (id == null) return NotFound();
 
-            var team = await _context.Team.FirstOrDefaultAsync(m => m.Id == id);
-            if (team == null)
-                return NotFound();
+            var team = await _context.Team
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (team == null) return NotFound();
 
             return View(team);
         }

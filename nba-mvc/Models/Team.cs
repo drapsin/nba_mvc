@@ -15,9 +15,5 @@ namespace nba_mvc.Models
         public Arena? Arena { get; set; }               // Navigation
         public ICollection<Player>? Players { get; set; }
         public string? ImageUrl { get; set; }
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
-
-
     }
 }
