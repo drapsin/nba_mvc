@@ -2,94 +2,145 @@
 
 @{
     ViewData["Title"] = "Index";
+    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
+    var searchString = ViewData["SearchString"] as string ?? "";
+    var sortOrder = ViewData["CurrentSort"] as string ?? "";
+    var selectedTeamId = ViewData["SelectedTeamId"] as Guid?;
+    var selectedPosition = ViewData["SelectedPosition"] as string ?? "";
+    var teams = ViewData["Teams"] as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
+    var positions = ViewData["Positions"] as List<string> ?? new List<string>();
 }
 
-<h1>Index</h1>
+<h1>Players</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success mb-3">Create New</a>
 </p>
-<table class="table">
-    <thead>
+
+<!-- Filters -->
+<form asp-action="Index" method="get" class="row mb-3 g-2">
+    <div class="col-md-3">
+        <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Search by name..." />
+    </div>
+    <div class="col-md-3">
+        <select name="teamId" class="form-select">
+            <option value="">-- All Teams --</option>
+            @foreach (var team in teams)
+{
+    var isSelected = team.Value == selectedTeamId?.ToString() ? "selected" : "";
+
+    @:<option value="@team.Value" @isSelected>@team.Text</option>
+}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="position" class="form-select">
+            <option value="">-- All Positions --</option>
+           @foreach (var pos in positions)
+{
+    var isSelected = pos == selectedPosition ? "selected" : "";
+
+    @:<option value="@pos" @isSelected>@pos</option>
+}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-outline-primary w-100">Apply Filters</button>
+    </div>
+</form>
+
+<!-- Players Table -->
+<table class="table table-bordered">
+    <thead class="table-light">
         <tr>
-            <th>
-                First Name
-            </th>
-            <th>
-                Last Name
-            </th>
-            <th>
-                Age
-            </th>
-            <th>
-                Position
-            </th>
-            <th>
-                Height
-            </th>
-            <th>
-                Weight
-            </th>
-            <th>
-                Manager
-            </th>
-            <th>
-                Sponsor
-            </th>
-            <th>
-                News
-            </th>
-            <th>
-                Created At
-            </th>
-            <th></th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Age</th>
+            <th>Position</th>
+            <th>Height</th>
+            <th>Weight</th>
+            <th>Manager</th>
+            <th>Sponsor</th>
+            <th>News</th>
+            <th>Created At</th>
+            <th>Image</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Age)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Position)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Height)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Weight)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Manager)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Sponsor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.News)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.FirstName</td>
+                <td>@item.LastName</td>
+                <td>@item.Age</td>
+                <td>@item.Position</td>
+                <td>@item.Height</td>
+                <td>@item.Weight</td>
+                <td>@item.Manager</td>
+                <td>@item.Sponsor</td>
+                <td>@item.News</td>
+                <td>@item.CreatedAt.ToShortDateString()</td>
                 <td>
                     <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl)"
                          alt="Profile" width="60" height="60" style="object-fit: cover;" />
                 </td>
-
-
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<!-- Pagination -->
+<div id="pagination" class="d-flex justify-content-center mt-4">
+    <nav>
+        <ul class="pagination"></ul>
+    </nav>
+</div>
+
+@section Scripts {
+    <script>
+        const currentPage = @currentPage;
+        const totalPages = @totalPages;
+        const searchString = @Html.Raw(Json.Serialize(searchString));
+        const sortOrder = @Html.Raw(Json.Serialize(sortOrder));
+        const selectedTeamId = @Html.Raw(Json.Serialize(selectedTeamId?.ToString()));
+        const selectedPosition = @Html.Raw(Json.Serialize(selectedPosition));
+
+        function loadPage(page) {
+            const query = new URLSearchParams({
+                page,
+                searchString,
+                sortOrder,
+                teamId: selectedTeamId,
+                position: selectedPosition
+            });
+            window.location.href = `/Players/Index?${query.toString()}`;
+        }
+
+        function renderPagination() {
+            const ul = document.querySelector("#pagination ul");
+            ul.innerHTML = "";
+
+            if (currentPage > 1) {
+                ul.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadPage(${currentPage - 1})">Previous</a></li>`;
+            }
+
+            for (let i = 1; i <= totalPages; i++) {
+                const active = i === currentPage ? "active" : "";
+                ul.innerHTML += `<li class="page-item ${active}"><a class="page-link" href="#" onclick="loadPage(${i})">${i}</a></li>`;
+            }
+
+            if (currentPage < totalPages) {
+                ul.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadPage(${currentPage + 1})">Next</a></li>`;
+            }
+        }
+
+        renderPagination();
+    </script>
+}

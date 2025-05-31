@@ -58,12 +58,18 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var services = scope.ServiceProvider;
+
     // Seed roles
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await nba_mvc.Data.DbInitializer.SeedRoles(roleManager);
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await DbInitializer.SeedRoles(roleManager);
+
+    // Seed main database entities
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    DbInitializer.SeedData(context);
 
     // Admin user for testing
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
     var adminEmail = "admin@example.com";
     var adminPassword = "Admin123!";
 

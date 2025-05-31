@@ -20,11 +20,72 @@ namespace nba_mvc.Controllers
         }
 
         // GET: Players
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string searchString, Guid? teamId, string position, int page = 1)
         {
-            var players = _context.Player.Include(p => p.Team);
-            return View(await players.ToListAsync());
+            int pageSize = 10;
+
+            // ViewData for filters and sorting UI
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["SearchString"] = searchString;
+            ViewData["SelectedTeam"] = teamId;
+            ViewData["SelectedPosition"] = position;
+            ViewData["Teams"] = new SelectList(_context.Team, "Id", "Name");
+
+            ViewData["PositionSortParm"] = string.IsNullOrEmpty(sortOrder) ? "position_desc" : "";
+            ViewData["HeightSortParm"] = sortOrder == "height" ? "height_desc" : "height";
+            ViewData["WeightSortParm"] = sortOrder == "weight" ? "weight_desc" : "weight";
+            ViewData["TeamSortParm"] = sortOrder == "team" ? "team_desc" : "team";
+
+            // Base query
+            var playersQuery = _context.Player
+                .Include(p => p.Team)
+                .AsNoTracking();
+
+            // Apply search
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                playersQuery = playersQuery.Where(p =>
+                    p.FirstName.Contains(searchString) || p.LastName.Contains(searchString));
+            }
+
+            // Apply filters
+            if (teamId.HasValue)
+            {
+                playersQuery = playersQuery.Where(p => p.TeamId == teamId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(position))
+            {
+                playersQuery = playersQuery.Where(p => p.Position == position);
+            }
+
+            // Apply sorting
+            playersQuery = sortOrder switch
+            {
+                "position_desc" => playersQuery.OrderByDescending(p => p.Position),
+                "height" => playersQuery.OrderBy(p => p.Height),
+                "height_desc" => playersQuery.OrderByDescending(p => p.Height),
+                "weight" => playersQuery.OrderBy(p => p.Weight),
+                "weight_desc" => playersQuery.OrderByDescending(p => p.Weight),
+                "team" => playersQuery.OrderBy(p => p.Team.Name),
+                "team_desc" => playersQuery.OrderByDescending(p => p.Team.Name),
+                _ => playersQuery.OrderBy(p => p.LastName),
+            };
+
+            // Pagination
+            int totalPlayers = await playersQuery.CountAsync();
+            var players = await playersQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = (int)Math.Ceiling(totalPlayers / (double)pageSize);
+            ViewData["Positions"] = new List<string> { "PG", "SG", "SF", "PF", "C" };
+            return View(players);
         }
+
+
 
         // GET: Players/Create
         public IActionResult Create()
