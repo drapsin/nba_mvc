@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using nba_mvc.Data;
 using nba_mvc.Models;
 using nba_mvc.Services;
@@ -12,11 +13,13 @@ namespace nba_mvc.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IImageUploader _imageUploader;
+        private readonly IMemoryCache _cache;
 
-        public PlayersController(ApplicationDbContext context, IImageUploader imageUploader)
+        public PlayersController(ApplicationDbContext context, IImageUploader imageUploader, IMemoryCache cache)
         {
             _context = context;
             _imageUploader = imageUploader; 
+            _cache = cache;
         }
 
         // GET: Players
@@ -29,8 +32,22 @@ namespace nba_mvc.Controllers
             ViewData["SearchString"] = searchString;
             ViewData["SelectedTeam"] = teamId;
             ViewData["SelectedPosition"] = position;
-            ViewData["Teams"] = new SelectList(_context.Team, "Id", "Name");
 
+            // Cached list of teams
+            ViewData["Teams"] = _cache.GetOrCreate("TeamList", entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+                return new SelectList(
+                    _context.Team
+                        .AsNoTracking()
+                        .OrderBy(t => t.Name)
+                        .ToList(),
+                    "Id",
+                    "Name"
+                );
+            });
+
+            // Sorting parameters
             ViewData["PositionSortParm"] = string.IsNullOrEmpty(sortOrder) ? "position_desc" : "";
             ViewData["HeightSortParm"] = sortOrder == "height" ? "height_desc" : "height";
             ViewData["WeightSortParm"] = sortOrder == "weight" ? "weight_desc" : "weight";
@@ -41,25 +58,26 @@ namespace nba_mvc.Controllers
                 .Include(p => p.Team)
                 .AsNoTracking();
 
-            // Apply search
+            // Search filter
             if (!string.IsNullOrEmpty(searchString))
             {
                 playersQuery = playersQuery.Where(p =>
                     p.FirstName.Contains(searchString) || p.LastName.Contains(searchString));
             }
 
-            // Apply filters
+            // Team filter
             if (teamId.HasValue)
             {
                 playersQuery = playersQuery.Where(p => p.TeamId == teamId.Value);
             }
 
+            // Position filter
             if (!string.IsNullOrEmpty(position))
             {
                 playersQuery = playersQuery.Where(p => p.Position == position);
             }
 
-            // Apply sorting
+            // Sorting
             playersQuery = sortOrder switch
             {
                 "position_desc" => playersQuery.OrderByDescending(p => p.Position),
@@ -81,10 +99,22 @@ namespace nba_mvc.Controllers
 
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"] = (int)Math.Ceiling(totalPlayers / (double)pageSize);
-            ViewData["Positions"] = new List<string> { "PG", "SG", "SF", "PF", "C" };
+
+            // Cached list of normalized positions
+            ViewData["Positions"] = _cache.GetOrCreate("PlayerPositions", entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
+                return _context.Player
+                    .AsNoTracking()
+                    .Select(p => p.Position.Trim().ToUpper())
+                    .Where(p => !string.IsNullOrEmpty(p))
+                    .Distinct()
+                    .OrderBy(p => p)
+                    .ToList();
+            });
+
             return View(players);
         }
-
 
 
         // GET: Players/Create
