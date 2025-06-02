@@ -53,7 +53,7 @@ namespace nba_mvc.Controllers
             ViewData["WeightSortParm"] = sortOrder == "weight" ? "weight_desc" : "weight";
             ViewData["TeamSortParm"] = sortOrder == "team" ? "team_desc" : "team";
 
-            // Base query
+            // Base query with Include to allow accessing Team.Name in projection
             var playersQuery = _context.Player
                 .Include(p => p.Team)
                 .AsNoTracking();
@@ -90,9 +90,25 @@ namespace nba_mvc.Controllers
                 _ => playersQuery.OrderBy(p => p.LastName),
             };
 
-            // Pagination
+            // Pagination + projection to ViewModel
             int totalPlayers = await playersQuery.CountAsync();
             var players = await playersQuery
+                .Select(p => new PlayerListViewModel
+                {
+                    Id = p.Id,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Position = p.Position,
+                    Age = p.Age,
+                    Height = p.Height,
+                    Weight = p.Weight,
+                    Manager = p.Manager,
+                    Sponsor = p.Sponsor,
+                    News = p.News,
+                    CreatedAt = p.CreatedAt,
+                    TeamName = p.Team.Name,
+                    ImageUrl = p.ImageUrl
+                })
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -115,6 +131,7 @@ namespace nba_mvc.Controllers
 
             return View(players);
         }
+
 
 
         // GET: Players/Create

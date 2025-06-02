@@ -1,4 +1,5 @@
-﻿@model IEnumerable<nba_mvc.Models.Player>
+﻿@model IEnumerable<nba_mvc.ViewModels.PlayerListViewModel>
+
 
 @{
     ViewData["Title"] = "Index";
@@ -83,8 +84,13 @@
                 <td>@item.News</td>
                 <td>@item.CreatedAt.ToShortDateString()</td>
                 <td>
-                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl)"
-                         alt="Profile" width="60" height="60" style="object-fit: cover;" />
+                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl + (item.ImageUrl.Contains("res.cloudinary.com") ? "?f_auto&q_auto&w=60&h=60&c_fill" : ""))"
+     alt="Profile"
+     width="60"
+     height="60"
+     loading="lazy"
+     style="object-fit: cover;" />
+
                 </td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
