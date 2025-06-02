@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -65,13 +66,11 @@ namespace nba_mvc.Controllers
                     p.FirstName.Contains(searchString) || p.LastName.Contains(searchString));
             }
 
-            // Team filter
             if (teamId.HasValue)
             {
                 playersQuery = playersQuery.Where(p => p.TeamId == teamId.Value);
             }
 
-            // Position filter
             if (!string.IsNullOrEmpty(position))
             {
                 playersQuery = playersQuery.Where(p => p.Position == position);
@@ -131,8 +130,6 @@ namespace nba_mvc.Controllers
 
             return View(players);
         }
-
-
 
         // GET: Players/Create
         public IActionResult Create()
@@ -314,5 +311,25 @@ namespace nba_mvc.Controllers
         {
             return _context.Player.Any(e => e.Id == id);
         }
+        
+        // API endpoint to get players for external use
+        [AllowAnonymous]
+
+        [HttpGet("/api/players")]
+        public IActionResult GetPlayers()
+        {
+            var players = _context.Player
+                .Include(p => p.Team)
+                .Select(p => new {
+                    Id = p.Id,
+                    Name = p.FirstName + " " + p.LastName,
+                    Position = p.Position,
+                    Team = p.Team != null ? p.Team.Name : null,
+                    ImageUrl = p.ImageUrl
+                })
+                .ToList();
+            return Json(players);
+        }
+
     }
 }
