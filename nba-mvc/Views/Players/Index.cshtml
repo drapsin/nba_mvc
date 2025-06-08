@@ -1,152 +1,183 @@
-﻿@model IEnumerable<nba_mvc.ViewModels.PlayerListViewModel>
-
-
-@{
-    ViewData["Title"] = "Index";
-    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
-    var totalPages = ViewData["TotalPages"] as int? ?? 1;
-    var searchString = ViewData["SearchString"] as string ?? "";
-    var sortOrder = ViewData["CurrentSort"] as string ?? "";
-    var selectedTeamId = ViewData["SelectedTeamId"] as Guid?;
-    var selectedPosition = ViewData["SelectedPosition"] as string ?? "";
-    var teams = ViewData["Teams"] as SelectList ?? new SelectList(Enumerable.Empty<SelectListItem>());
-    var positions = ViewData["Positions"] as List<string> ?? new List<string>();
+﻿@{
+    ViewData["Title"] = "Players";
 }
 
 <h1>Players</h1>
 
-<p>
-    <a asp-action="Create" class="btn btn-success mb-3">Create New</a>
-</p>
-
-<!-- Filters -->
-<form asp-action="Index" method="get" class="row mb-3 g-2">
-    <div class="col-md-3">
-        <input type="text" name="searchString" value="@searchString" class="form-control" placeholder="Search by name..." />
+<div x-data="playerPagination()" x-init="init()" x-cloak class="mt-4">
+    <!-- Pagination Controls -->
+    <div class="mb-3 d-flex gap-2 align-items-center">
+        <button class="btn btn-primary" x-on:click="prevPage" :disabled="page === 1">Previous</button>
+        <span>Page <span x-text="page"></span> of <span x-text="totalPages"></span></span>
+        <button class="btn btn-primary" x-on:click="nextPage" :disabled="page === totalPages">Next</button>
     </div>
-    <div class="col-md-3">
-        <select name="teamId" class="form-select">
-            <option value="">-- All Teams --</option>
-            @foreach (var team in teams)
-{
-    var isSelected = team.Value == selectedTeamId?.ToString() ? "selected" : "";
 
-    @:<option value="@team.Value" @isSelected>@team.Text</option>
-}
+    <!-- Filters -->
+    <div class="mb-4 d-flex gap-3 align-items-center">
+        <input type="text" class="form-control" placeholder="Search by name" x-model="searchQuery" style="max-width: 300px;">
+
+        <select class="form-select" x-model="selectedPosition" style="max-width: 150px;">
+            <option value="">All Positions</option>
+            <template x-for="pos in positions" :key="pos">
+                <option x-text="pos"></option>
+            </template>
         </select>
-    </div>
-    <div class="col-md-3">
-        <select name="position" class="form-select">
-            <option value="">-- All Positions --</option>
-           @foreach (var pos in positions)
-{
-    var isSelected = pos == selectedPosition ? "selected" : "";
 
-    @:<option value="@pos" @isSelected>@pos</option>
-}
+        <select class="form-select" x-model="selectedTeam" style="max-width: 200px;">
+            <option value="">All Teams</option>
+            <template x-for="team in teams" :key="team">
+                <option x-text="team"></option>
+            </template>
         </select>
-    </div>
-    <div class="col-md-3">
-        <button type="submit" class="btn btn-outline-primary w-100">Apply Filters</button>
-    </div>
-</form>
 
-<!-- Players Table -->
-<table class="table table-bordered">
-    <thead class="table-light">
-        <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Age</th>
-            <th>Position</th>
-            <th>Height</th>
-            <th>Weight</th>
-            <th>Manager</th>
-            <th>Sponsor</th>
-            <th>News</th>
-            <th>Created At</th>
-            <th>Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+        <input type="number" class="form-control" placeholder="Age" x-model.number="searchAge" style="max-width: 100px;">
+    </div>
+
+    <!-- Loading -->
+    <template x-if="loading">
+        <p>Loading players...</p>
+    </template>
+
+    <!-- Player Table -->
+    <table class="table table-hover">
+        <thead class="table-light">
             <tr>
-                <td>@item.FirstName</td>
-                <td>@item.LastName</td>
-                <td>@item.Age</td>
-                <td>@item.Position</td>
-                <td>@item.Height</td>
-                <td>@item.Weight</td>
-                <td>@item.Manager</td>
-                <td>@item.Sponsor</td>
-                <td>@item.News</td>
-                <td>@item.CreatedAt.ToShortDateString()</td>
-                <td>
-                    <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/image/fallback-image.png" : item.ImageUrl + (item.ImageUrl.Contains("res.cloudinary.com") ? "?f_auto&q_auto&w=60&h=60&c_fill" : ""))"
-     alt="Profile"
-     width="60"
-     height="60"
-     loading="lazy"
-     style="object-fit: cover;" />
-
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <th x-on:click="sortBy('firstName')" style="cursor:pointer">
+                    First Name <template x-if="sortKey === 'firstName'"><span x-text="sortAsc ? ' ↑' : ' ↓'"></span></template>
+                </th>
+                <th x-on:click="sortBy('lastName')" style="cursor:pointer">
+                    Last Name <template x-if="sortKey === 'lastName'"><span x-text="sortAsc ? ' ↑' : ' ↓'"></span></template>
+                </th>
+                <th x-on:click="sortBy('position')" style="cursor:pointer">
+                    Position <template x-if="sortKey === 'position'"><span x-text="sortAsc ? ' ↑' : ' ↓'"></span></template>
+                </th>
+                <th x-on:click="sortBy('team')" style="cursor:pointer">
+                    Team <template x-if="sortKey === 'team'"><span x-text="sortAsc ? ' ↑' : ' ↓'"></span></template>
+                </th>
+                <th x-on:click="sortBy('age')" style="cursor:pointer">
+                    Age <template x-if="sortKey === 'age'"><span x-text="sortAsc ? ' ↑' : ' ↓'"></span></template>
+                </th>
+                <th>Image</th>
+                <th></th>
             </tr>
-        }
-    </tbody>
-</table>
-
-<!-- Pagination -->
-<div id="pagination" class="d-flex justify-content-center mt-4">
-    <nav>
-        <ul class="pagination"></ul>
-    </nav>
+        </thead>
+        <tbody>
+            <template x-for="player in paginatedPlayers" :key="player.id">
+                <tr>
+                    <td x-text="player.firstName"></td>
+                    <td x-text="player.lastName"></td>
+                    <td x-text="player.position"></td>
+                    <td x-text="player.team"></td>
+                    <td x-text="player.age"></td>
+                    <td>
+                        <img loading="lazy" decoding="async" :src="player.imageUrl || '/image/fallback-image.png'"
+                             alt="Player Image" width="50" height="50" class="img-thumbnail" style="object-fit: cover;" />
+                    </td>
+                    <td>
+                        <a class="text-decoration-none" :href="`/Players/Edit/${player.id}`">Edit</a> |
+                        <a class="text-decoration-none" :href="`/Players/Details/${player.id}`">Details</a> |
+                        <a class="text-decoration-none text-danger" :href="`/Players/Delete/${player.id}`">Delete</a>
+                    </td>
+                </tr>
+            </template>
+        </tbody>
+    </table>
 </div>
 
-@section Scripts {
-    <script>
-        const currentPage = @currentPage;
-        const totalPages = @totalPages;
-        const searchString = @Html.Raw(Json.Serialize(searchString));
-        const sortOrder = @Html.Raw(Json.Serialize(sortOrder));
-        const selectedTeamId = @Html.Raw(Json.Serialize(selectedTeamId?.ToString()));
-        const selectedPosition = @Html.Raw(Json.Serialize(selectedPosition));
+<template x-if="filteredPlayers.length === 0 && !loading">
+    <p class="text-muted">No players match the selected filters.</p>
+</template>
 
-        function loadPage(page) {
-            const query = new URLSearchParams({
-                page,
-                searchString,
-                sortOrder,
-                teamId: selectedTeamId,
-                position: selectedPosition
-            });
-            window.location.href = `/Players/Index?${query.toString()}`;
-        }
 
-        function renderPagination() {
-            const ul = document.querySelector("#pagination ul");
-            ul.innerHTML = "";
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-            if (currentPage > 1) {
-                ul.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadPage(${currentPage - 1})">Previous</a></li>`;
+<!-- Alpine Component Logic -->
+<script>
+    function playerPagination() {
+        return {
+            players: [],
+            page: 1,
+            perPage: 9,
+            loading: true,
+            sortKey: 'firstName',
+            sortAsc: true,
+            searchQuery: '',
+            selectedPosition: '',
+            selectedTeam: '',
+            searchAge: '',
+            positions: [],
+            teams: [],
+
+            async init() {
+                console.log("Initializing component...");
+                try {
+                    const response = await fetch('/api/players');
+                    const data = await response.json();
+                    console.log("Raw API response:", data);
+
+                    this.players = data;
+                    this.positions = [...new Set(this.players.map(p => p.position))].sort();
+                    this.teams = [...new Set(this.players.map(p => p.team))].sort();
+
+                    this.sortBy(this.sortKey);
+                } catch (error) {
+                    console.error("Failed to fetch players", error);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            sortBy(key) {
+                if (this.sortKey === key) {
+                    this.sortAsc = !this.sortAsc;
+                } else {
+                    this.sortKey = key;
+                    this.sortAsc = true;
+                }
+
+                this.players.sort((a, b) => {
+                    const aVal = (a[key] || '').toString().toLowerCase();
+                    const bVal = (b[key] || '').toString().toLowerCase();
+                    if (aVal < bVal) return this.sortAsc ? -1 : 1;
+                    if (aVal > bVal) return this.sortAsc ? 1 : -1;
+                    return 0;
+                });
+            },
+
+                get totalPages() {
+        const total = Math.ceil(this.filteredPlayers.length / this.perPage);
+        return total < 1 ? 1 : total;
+    }
+    ,
+
+                get paginatedPlayers() {
+        if (this.page < 1) this.page = 1;
+        if (this.page > this.totalPages) this.page = this.totalPages;
+
+        const start = (this.page - 1) * this.perPage;
+        return this.filteredPlayers.slice(start, start + this.perPage);
+    }
+    ,
+
+            get filteredPlayers() {
+                return this.players.filter(p => {
+                    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+                    const nameMatch = fullName.includes(this.searchQuery.toLowerCase());
+                    const positionMatch = this.selectedPosition === '' || p.position === this.selectedPosition;
+                    const teamMatch = this.selectedTeam === '' || p.team === this.selectedTeam;
+                    const ageMatch = this.searchAge === '' || p.age === this.searchAge;
+                    return nameMatch && positionMatch && teamMatch && ageMatch;
+                });
+            },
+
+            nextPage() {
+                if (this.page < this.totalPages) this.page++;
+            },
+
+            prevPage() {
+                if (this.page > 1) this.page--;
             }
-
-            for (let i = 1; i <= totalPages; i++) {
-                const active = i === currentPage ? "active" : "";
-                ul.innerHTML += `<li class="page-item ${active}"><a class="page-link" href="#" onclick="loadPage(${i})">${i}</a></li>`;
-            }
-
-            if (currentPage < totalPages) {
-                ul.innerHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadPage(${currentPage + 1})">Next</a></li>`;
-            }
-        }
-
-        renderPagination();
-    </script>
-}
+        };
+    }
+</script>

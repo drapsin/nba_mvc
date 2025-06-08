@@ -28,7 +28,6 @@ namespace nba_mvc.Controllers
         {
             int pageSize = 10;
 
-            // ViewData for filters and sorting UI
             ViewData["CurrentSort"] = sortOrder;
             ViewData["SearchString"] = searchString;
             ViewData["SelectedTeam"] = teamId;
@@ -91,6 +90,19 @@ namespace nba_mvc.Controllers
 
             // Pagination + projection to ViewModel
             int totalPlayers = await playersQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalPlayers / (double)pageSize);
+
+            if (totalPages == 0)
+            {
+                page = 1;
+                totalPages = 1; 
+            }
+            else
+            {
+                if (page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+            }
+
             var players = await playersQuery
                 .Select(p => new PlayerListViewModel
                 {
@@ -113,9 +125,9 @@ namespace nba_mvc.Controllers
                 .ToListAsync();
 
             ViewData["CurrentPage"] = page;
-            ViewData["TotalPages"] = (int)Math.Ceiling(totalPlayers / (double)pageSize);
+            ViewData["TotalPages"] = totalPages == 0 ? 1 : totalPages;
 
-            // Cached list of normalized positions
+
             ViewData["Positions"] = _cache.GetOrCreate("PlayerPositions", entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
@@ -319,17 +331,24 @@ namespace nba_mvc.Controllers
         public IActionResult GetPlayers()
         {
             var players = _context.Player
+                .AsNoTracking()
                 .Include(p => p.Team)
                 .Select(p => new {
                     Id = p.Id,
-                    Name = p.FirstName + " " + p.LastName,
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Age = p.Age,
                     Position = p.Position,
                     Team = p.Team != null ? p.Team.Name : null,
-                    ImageUrl = p.ImageUrl
+                    ImageUrl = string.IsNullOrEmpty(p.ImageUrl)
+                        ? null
+                        : p.ImageUrl.Replace("/upload/", "/upload/w_100,h_100,c_fill/")
                 })
                 .ToList();
+
             return Json(players);
         }
+
 
     }
 }
