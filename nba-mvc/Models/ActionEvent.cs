@@ -2,9 +2,12 @@
 {
     public class ActionEvent : BaseId
     {
-        public Game Game { get; set; }
-        public Player Player { get; set; }
-        public Team Team { get; set; }
+        public Guid GameId  { get; set; }
+        public Game? Game { get; set; }
+        public Guid PlayerId { get; set; }
+        public Player? Player { get; set; }
+        public Guid TeamId { get; set; }
+        public Team? Team { get; set; }
         public int Quarter { get; set; }
         public TimeSpan GameTime { get; set; }
         public EventType EventType { get; set; }

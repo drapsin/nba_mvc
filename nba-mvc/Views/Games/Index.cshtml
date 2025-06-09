@@ -1,0 +1,45 @@
+﻿@model IEnumerable<nba_mvc.Models.Game>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Games</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Create New</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.First().GameDate)</th>
+            <th>@Html.DisplayNameFor(model => model.First().GameName)</th>
+            <th>Arena</th>
+            <th>@Html.DisplayNameFor(model => model.First().GameResult)</th>
+            <th>@Html.DisplayNameFor(model => model.First().Sponsor)</th>
+            <th>@Html.DisplayNameFor(model => model.First().CreatedAt)</th>
+            <th>@Html.DisplayNameFor(model => model.First().RowVersion)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.GameDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.GameName)</td>
+                <td>@item.Location?.ArenaName</td>
+                <td>@Html.DisplayFor(modelItem => item.GameResult)</td>
+                <td>@Html.DisplayFor(modelItem => item.Sponsor)</td>
+                <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
+                <td>@Html.DisplayFor(modelItem => item.RowVersion)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

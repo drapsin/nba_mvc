@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using nba_mvc.Data;
 
@@ -11,9 +12,11 @@ using nba_mvc.Data;
 namespace nba_mvc.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250609094602_AddActionEvents")]
+    partial class AddActionEvents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -348,20 +351,25 @@ namespace nba_mvc.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ArenaId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("GameDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("GameLocation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("GameName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GameResult")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GameTime")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -376,8 +384,6 @@ namespace nba_mvc.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ArenaId");
 
                     b.ToTable("Game");
                 });
@@ -636,17 +642,6 @@ namespace nba_mvc.Migrations
                         .IsRequired();
 
                     b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("nba_mvc.Models.Game", b =>
-                {
-                    b.HasOne("nba_mvc.Models.Arena", "GameLocation")
-                        .WithMany()
-                        .HasForeignKey("ArenaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("GameLocation");
                 });
 
             modelBuilder.Entity("nba_mvc.Models.Player", b =>

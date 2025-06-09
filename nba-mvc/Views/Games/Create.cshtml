@@ -1,0 +1,56 @@
+﻿@model nba_mvc.ViewModels.GameCreateViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Game</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="GameDate" class="control-label">Game date and time: </label>
+                <input asp-for="GameDate" class="form-control" />
+                <span asp-validation-for="GameDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GameName" class="control-label">Game name: </label>
+                <input asp-for="GameName" class="form-control" />
+                <span asp-validation-for="GameName" class="text-danger"></span>
+            </div>
+            <!-- Arena Dropdown -->
+            <div class="form-group">
+                <label asp-for="ArenaId" class="control-label">Game location</label>
+                <select asp-for="ArenaId" class="form-control" asp-items="Model.Arenas">
+                    <option value="">-- Select Arena --</option>
+                </select>
+                <span asp-validation-for="ArenaId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GameResult" class="control-label">Game result: </label>
+                <input asp-for="GameResult" class="form-control" />
+                <span asp-validation-for="GameResult" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Sponsor" class="control-label">Sponsor: </label>
+                <input asp-for="Sponsor" class="form-control" />
+                <span asp-validation-for="Sponsor" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

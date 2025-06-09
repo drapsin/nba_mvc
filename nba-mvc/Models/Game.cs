@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace nba_mvc.Models
 {
@@ -6,8 +7,9 @@ namespace nba_mvc.Models
     {
         public DateTime GameDate { get; set; }
         public string GameName { get; set; }
-        public string GameTime { get; set; }
-        public string GameLocation { get; set; }
+        
+        public Guid ArenaId { get; set; }
+        public Arena? Location { get; set; }
         public string GameResult { get; set; }
         public string Sponsor { get; set; }
         public ICollection<ActionEvent> ActionEvents { get; set; } = new List<ActionEvent>();
