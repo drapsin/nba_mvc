@@ -7,7 +7,7 @@ namespace nba_mvc.ViewModels
     public class GameCreateViewModel
     {
         public DateTime GameDate { get; set; }
-        public string GameName { get; set; }
+        public Team TeamId { get; set; }
         public List<SelectListItem> Arenas { get; set; } = new();
         public Guid ArenaId { get; set; }
         public string GameResult { get; set; }

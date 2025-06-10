@@ -6,8 +6,8 @@ namespace nba_mvc.Models
     public class Game : BaseId
     {
         public DateTime GameDate { get; set; }
-        public string GameName { get; set; }
-        
+        public Guid TeamId { get; set; } // FK
+        public Team? GameName { get; set; }
         public Guid ArenaId { get; set; }
         public Arena? Location { get; set; }
         public string GameResult { get; set; }

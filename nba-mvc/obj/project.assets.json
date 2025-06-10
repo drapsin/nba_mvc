@@ -10718,11 +10718,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
+      "projectUniqueName": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
       "projectName": "nba-mvc",
-      "projectPath": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
+      "projectPath": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\nba-mvc.csproj",
       "packagesPath": "C:\\Users\\urosd\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\urosd\\Source\\Repos\\nba_mvc\\nba-mvc\\obj\\",
+      "outputPath": "C:\\Users\\urosd\\source\\repos\\nba_mvc\\nba-mvc\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -10755,8 +10755,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -10810,7 +10809,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.204/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

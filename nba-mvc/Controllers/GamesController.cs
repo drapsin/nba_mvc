@@ -83,7 +83,7 @@ namespace nba_mvc.Controllers
             var game = new Game
             {
                 GameDate = model.GameDate,
-                GameName = model.GameName,
+                GameName = model.TeamId,
                 ArenaId = model.ArenaId,
                 GameResult = model.GameResult,
                 Sponsor = model.Sponsor,
