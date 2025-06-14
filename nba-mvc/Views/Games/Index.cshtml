@@ -14,7 +14,8 @@
     <thead>
         <tr>
             <th>@Html.DisplayNameFor(model => model.First().GameDate)</th>
-            <th>@Html.DisplayNameFor(model => model.First().GameName)</th>
+            <th>@Html.DisplayNameFor(model => model.First().HomeTeam)</th>
+            <th>@Html.DisplayNameFor(model => model.First().AwayTeam)</th>
             <th>Arena</th>
             <th>@Html.DisplayNameFor(model => model.First().GameResult)</th>
             <th>@Html.DisplayNameFor(model => model.First().Sponsor)</th>
@@ -28,7 +29,8 @@
         {
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.GameDate)</td>
-                <td>@Html.DisplayFor(modelItem => item.GameName)</td>
+                <td>@Html.DisplayFor(modelItem => item.HomeTeam)</td>
+                <td>@Html.DisplayFor(modelItem => item.AwayTeam)</td>
                 <td>@item.Location?.ArenaName</td>
                 <td>@Html.DisplayFor(modelItem => item.GameResult)</td>
                 <td>@Html.DisplayFor(modelItem => item.Sponsor)</td>

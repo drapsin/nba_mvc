@@ -12,8 +12,8 @@ using nba_mvc.Data;
 namespace nba_mvc.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250610123604_UpdatedGamesEntity")]
-    partial class UpdatedGamesEntity
+    [Migration("20250611151932_UpdatedAll")]
+    partial class UpdatedAll
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -351,9 +351,6 @@ namespace nba_mvc.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ArenaId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -363,6 +360,9 @@ namespace nba_mvc.Migrations
                     b.Property<string>("GameResult")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -374,14 +374,14 @@ namespace nba_mvc.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("TeamId")
+                    b.Property<Guid>("TeamsId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArenaId");
+                    b.HasIndex("LocationId");
 
-                    b.HasIndex("TeamId");
+                    b.HasIndex("TeamsId");
 
                     b.ToTable("Game");
                 });
@@ -441,6 +441,9 @@ namespace nba_mvc.Migrations
                     b.Property<Guid>("TeamId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("TeamId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Weight")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -450,6 +453,8 @@ namespace nba_mvc.Migrations
                     b.HasIndex("GameId");
 
                     b.HasIndex("TeamId");
+
+                    b.HasIndex("TeamId1");
 
                     b.ToTable("Player");
                 });
@@ -621,7 +626,7 @@ namespace nba_mvc.Migrations
                     b.HasOne("nba_mvc.Models.Team", "Team")
                         .WithMany()
                         .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Game");
@@ -646,19 +651,19 @@ namespace nba_mvc.Migrations
                 {
                     b.HasOne("nba_mvc.Models.Arena", "Location")
                         .WithMany()
-                        .HasForeignKey("ArenaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("nba_mvc.Models.Team", "GameName")
+                    b.HasOne("nba_mvc.Models.Team", "Teams")
                         .WithMany()
-                        .HasForeignKey("TeamId")
+                        .HasForeignKey("TeamsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("GameName");
 
                     b.Navigation("Location");
+
+                    b.Navigation("Teams");
                 });
 
             modelBuilder.Entity("nba_mvc.Models.Player", b =>
@@ -668,10 +673,14 @@ namespace nba_mvc.Migrations
                         .HasForeignKey("GameId");
 
                     b.HasOne("nba_mvc.Models.Team", "Team")
-                        .WithMany("Players")
+                        .WithMany()
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("nba_mvc.Models.Team", null)
+                        .WithMany("Players")
+                        .HasForeignKey("TeamId1");
 
                     b.Navigation("Team");
                 });

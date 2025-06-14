@@ -76,15 +76,16 @@ namespace nba_mvc.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.ArenaId);
+                ViewData["ArenaId"] = new SelectList(_context.Arena, "Id", "ArenaName", model.LocationId);
                 return View(model);
             }
 
             var game = new Game
             {
                 GameDate = model.GameDate,
-                GameName = model.TeamId,
-                ArenaId = model.ArenaId,
+                HomeTeam = model.HomeTeam,
+                AwayTeam = model.AwayTeam,
+                Location = model.LocationId, //used to be GameLocation
                 GameResult = model.GameResult,
                 Sponsor = model.Sponsor,
                 CreatedAt = DateTime.UtcNow
@@ -115,7 +116,7 @@ namespace nba_mvc.Controllers
                     Text = a.ArenaName
                 }).ToList();
 
-            ViewData["ArenaId"] = new SelectList(arenas, "Value", "Text", game.ArenaId);
+            ViewData["ArenaId"] = new SelectList(arenas, "Value", "Text", game.LocationId);
 
             return View(game);
         }

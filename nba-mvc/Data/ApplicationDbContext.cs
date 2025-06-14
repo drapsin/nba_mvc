@@ -22,10 +22,11 @@ namespace nba_mvc.Data
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<ActionEvent>()
                 .HasOne(a => a.Game)
-                .WithMany()
-                .HasForeignKey(a => a.TeamId)
+                .WithMany(g => g.ActionEvents)
+                .HasForeignKey(a => a.GameId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ActionEvent>()
@@ -35,15 +36,21 @@ namespace nba_mvc.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<ActionEvent>()
-               .HasOne(a => a.Game)
-               .WithMany(g => g.ActionEvents)
-               .HasForeignKey(a => a.GameId)
+               .HasOne(a => a.Team)
+               .WithMany()
+               .HasForeignKey(a => a.TeamId)
                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Player>()
                 .HasOne(p => p.Team)
-                .WithMany(t => t.Players)
+                .WithMany()
                 .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<Game>()
+                .HasOne(g => g.Location)
+                .WithMany()
+                .HasForeignKey(g => g.LocationId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

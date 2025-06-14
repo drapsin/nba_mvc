@@ -18,14 +18,19 @@
                 <span asp-validation-for="GameDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="GameName" class="control-label"></label>
-                <input asp-for="GameName" class="form-control" />
-                <span asp-validation-for="GameName" class="text-danger"></span>
+                <label asp-for="HomeTeam" class="control-label">Home team</label>
+                <input asp-for="HomeTeam" class="form-control" />
+                <span asp-validation-for="HomeTeam" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ArenaId" class="control-label"></label>
-                <select asp-for="ArenaId" class="form-control" asp-items="ViewBag.ArenaId"></select>
-                <span asp-validation-for="ArenaId" class="text-danger"></span>
+                <label asp-for="AwayTeam" class="control-label">Away team</label>
+                <input asp-for="AwayTeam" class="form-control" />
+                <span asp-validation-for="AwayTeam" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LocationId" class="control-label"></label>
+                <select asp-for="LocationId" class="form-control" asp-items="ViewBag.ArenaId"></select>
+                <span asp-validation-for="LocationId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="GameResult" class="control-label"></label>

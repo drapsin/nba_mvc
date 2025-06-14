@@ -17,18 +17,22 @@
                 <input asp-for="GameDate" class="form-control" />
                 <span asp-validation-for="GameDate" class="text-danger"></span>
             </div>
+            <!-- Teams Dropdown -->
+
             <div class="form-group">
-                <label asp-for="TeamId" class="control-label">Game name: </label>
-                <input asp-for="TeamId" class="form-control" />
-                <span asp-validation-for="TeamId" class="text-danger"></span>
+                <label asp-for="HomeTeam" class="control-label">Home team: </label>
+                <select asp-for="HomeTeam" class="form-control" asp-items="Model.HomeTeam">
+                    <option value="">-- Select Home team --</option>
+                </select>
+                <span asp-validation-for="HomeTeam" class="text-danger"></span>
             </div>
             <!-- Arena Dropdown -->
             <div class="form-group">
-                <label asp-for="ArenaId" class="control-label">Game location</label>
-                <select asp-for="ArenaId" class="form-control" asp-items="Model.Arenas">
+                <label asp-for="LocationId" class="control-label">Game location</label>
+                <select asp-for="LocationId" class="form-control" asp-items="Model.Arenas">
                     <option value="">-- Select Arena --</option>
                 </select>
-                <span asp-validation-for="ArenaId" class="text-danger"></span>
+                <span asp-validation-for="LocationId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="GameResult" class="control-label">Game result: </label>

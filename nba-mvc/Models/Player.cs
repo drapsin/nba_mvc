@@ -16,7 +16,7 @@ namespace nba_mvc.Models
         public int Age { get; set; }
         public string Position { get; set; }
         [DisplayName("Team")]
-        public Guid TeamId { get; set; }    
+        public Guid TeamId { get; set; }    //FK
         public Team? Team { get; set; }
         [Range(150, 230, ErrorMessage = "Please enter a valid height")]
         public string Height { get; set; }
